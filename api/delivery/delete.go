@@ -2,16 +2,10 @@
 package delivery
 
 import (
-	"math/rand"
-	"time"
 	"todo/domain"
 
 	"github.com/gofiber/fiber/v2"
 )
-
-func init() {
-	rand.Seed(time.Now().Unix())
-}
 
 // Handlerを定義する
 type todoDeleteHandler struct {
