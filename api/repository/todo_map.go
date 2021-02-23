@@ -3,6 +3,7 @@ package repository
 
 import (
 	"errors"
+	"strings"
 	"sync"
 	"todo/domain"
 )
@@ -39,7 +40,11 @@ func (t *todoRepository) StatusUpdate(id int) error {
 	}
 
 	newTodo := r.(domain.Todo)
-	newTodo.Completed = true
+	if newTodo.Completed {
+		newTodo.Completed = false
+	} else {
+		newTodo.Completed = true
+	}
 
 	t.Store(newTodo)
 	return nil
@@ -53,4 +58,22 @@ func (t *todoRepository) Store(todo domain.Todo) error {
 func (t *todoRepository) Delete(id int) error {
 	t.m.Delete(id)
 	return nil
+}
+
+func (t *todoRepository) Search(key string) ([]domain.Todo, error) {
+	var todos []domain.Todo
+
+	t.m.Range(func(_ interface{}, value interface{}) bool {
+		todo := value.(domain.Todo)
+		NORESULT := -1
+		searchResult := strings.Index(todo.Text, key)
+		if searchResult != NORESULT {
+			todos = append(
+				todos,
+				todo,
+			)
+		}
+		return true
+	})
+	return todos, nil
 }

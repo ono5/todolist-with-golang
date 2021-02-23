@@ -48,3 +48,11 @@ func (t *todoUsecase) Delete(id int) error {
 	}
 	return nil
 }
+
+func (t *todoUsecase) Search(key string) ([]domain.Todo, error) {
+	todos, err := t.todoRepo.Search(key)
+	if err != nil {
+		return nil, err
+	}
+	return todos, nil
+}

@@ -1,14 +1,67 @@
-// 要素の取得
 const form = document.getElementById('form')
 const input = document.getElementById('input')
 const todosUL = document.getElementById('todos')
+// 要素を取得
+const searchForm = document.getElementById('search-form')
+const search = document.getElementById('search')
 
-// ローカルストレージからデータを取得
-const todos = JSON.parse(localStorage.getItem('todos'))
+const baseURL = 'http://localhost/'
 
-// 画面を開いた時にリストを生成する
-if(todos) {
-    todos.forEach(todo => addTodo(todo))
+let todos
+getAllTodo()
+
+async function getAllTodo() {
+    const response = await fetch(baseURL + 'todos')
+    const todos = await response.json()
+    if(todos) {
+        todos.forEach(todo => addTodo(todo))
+    }
+}
+
+async function store(todo){
+    await fetch(baseURL + 'todo/store',{
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(todo),
+    })
+}
+
+async function statusUpdate(id){
+    await fetch(baseURL + 'todo/statusupdate',{
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({id: id}),
+    })
+}
+
+async function deleteTodo(id){
+    await fetch(baseURL + 'todo/delete',{
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({id: id}),
+    })
+}
+
+// Todoを検索
+async function searchTodo(searchKey){
+    const response = await fetch(baseURL + 'todo/search',{
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({text: searchKey}),
+    })
+    const todos = await response.json()
+    // 画面を開いた時にリストを生成する
+    if(todos) {
+        todos.forEach(todo => addTodo(todo))
+    }
 }
 
 // Todo入力時に発火する
@@ -20,73 +73,65 @@ form.addEventListener('submit', (e) => {
     addTodo()
 })
 
-// Todo作成
+// Search時に発火する
+searchForm.addEventListener('submit', (e) => {
+    // デフォルトの動きをキャンセル
+    e.preventDefault()
+
+    // Todoリストをクリアする
+    while(todosUL.firstChild) {
+        // ulの子要素(li)を全て削除
+        todosUL.removeChild(todosUL.firstChild)
+    }
+
+    const searchKey = search.value
+    if (search) {
+        searchTodo(searchKey)
+    } else {
+        // 入力値がない場合は全件取得する(検索リセット)
+        getAllTodo()
+    }
+})
+
 function addTodo(todo) {
-    // 入力文字を取得
     let todoText = input.value
 
+    let id = Math.floor( Math.random() * (10000 + 1 - 1) ) + 1
+
+    const todoData = {
+        id: id,
+        text: todoText
+    }
+
     if(todo) {
+        id = todo.id
         todoText = todo.text
     }
 
+    if (!todo && todoText) {
+        store(todoData)
+    }
+
     if(todoText) {
-        // liリストを作成
+
         const todoEl = document.createElement('li')
-        // タスク完了かチェック
-        // todoはオブジェクトを格納でき、completedを持っている
         if(todo && todo.completed) {
-            // completedクラスをつける
             todoEl.classList.add('completed')
         }
 
         todoEl.innerText = todoText
 
-        // Todoをクリックした時に発火
         todoEl.addEventListener('click', () => {
-            // completedクラスがついてたら削除、そうでない場合は付与
             todoEl.classList.toggle('completed')
-            // ローカルストレージを更新
-            updateLS()
+            statusUpdate(id)
         })
 
-        // 右クリックした時に発火するイベント
         todoEl.addEventListener('contextmenu', (e) => {
-            // デフォルトの動きをキャンセル
             e.preventDefault()
-
-            // Todo削除
             todoEl.remove()
-            // ローカルストレージを更新
-            updateLS()
+            deleteTodo(id)
         })
-
-        // Todoを親要素の子要素として追加
         todosUL.appendChild(todoEl)
-
-        // 入力欄をクリア
         input.value = ''
-
-        // ローカルストレージを更新
-        updateLS()
     }
-}
-
-// ローカルストレージ更新
-function updateLS() {
-    // li要素を取得
-    todosEl = document.querySelectorAll('li')
-
-    // 保存データ
-    const todos = []
-
-    todosEl.forEach(todoEl => {
-        // オブジェクトを配列にpush
-        todos.push({
-            text: todoEl.innerText,
-            completed: todoEl.classList.contains('completed')
-        })
-    })
-
-    // ローカルストレージにtodosキーで保存保存
-    localStorage.setItem('todos', JSON.stringify(todos))
 }

@@ -47,3 +47,44 @@ func TestSyncMapRepository(t *testing.T) {
 		require.Empty(t, r4)
 	})
 }
+
+func TestSyncMapRepositorySearch(t *testing.T) {
+	dbRepo := NewSyncMapTodoRepository()
+	testData1 := domain.Todo{
+		ID:        1,
+		Text:      "First Post",
+		Completed: false,
+	}
+	testData2 := domain.Todo{
+		ID:        2,
+		Text:      "こんにちは。読者のみなさん",
+		Completed: false,
+	}
+	dbRepo.Store(testData1)
+	dbRepo.Store(testData2)
+
+	t.Run("Search Todo Test", func(t *testing.T) {
+		// Test1 - Firstで検索
+		todos, _ := dbRepo.Search("First")
+		// 空でないこと
+		require.NotEmpty(t, todos)
+		// 取得結果が1件
+		require.Equal(t, len(todos), 1)
+		// 取得したタスクがID1
+		require.Equal(t, todos[0].ID, 1)
+
+		// Test2 - こんにちはで検索
+		todos, _ = dbRepo.Search("こんにちは。")
+		// 空でないこと
+		require.NotEmpty(t, todos)
+		// 取得結果が1件
+		require.Equal(t, len(todos), 1)
+		// 取得したタスクがID2
+		require.Equal(t, todos[0].ID, 2)
+
+		// Test3 - NORESULTで検索
+		todos, _ = dbRepo.Search("NORESULT")
+		// 空であること
+		require.Empty(t, todos)
+	})
+}
