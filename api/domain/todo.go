@@ -2,7 +2,7 @@
 package domain
 
 type Todo struct {
-	ID        int    `json:"id"`
+	ID        int    `json:"id" gorm:"primaryKey"`
 	Text      string `json:"text"`
 	Completed bool   `json:"completed"`
 }

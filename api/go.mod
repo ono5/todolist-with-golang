@@ -9,4 +9,6 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/valyala/fasthttp v1.20.0 // indirect
 	golang.org/x/sys v0.0.0-20210216163648-f7da38b97c65 // indirect
+	gorm.io/driver/mysql v1.0.4 // indirect
+	gorm.io/gorm v1.20.12
 )
